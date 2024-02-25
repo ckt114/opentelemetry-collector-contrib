@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+[[ -z "$1" ]] && echo Usage: $0 VERSION [push] && exit 1
+
+docker build --build-arg VERSION=$1 -t ghcr.io/ckt114/opentelemetry-collector-contrib:$1 .
+
+[[ $2 == 'push' ]] && docker push ghcr.io/ckt114/opentelemetry-collector-contrib:$1
