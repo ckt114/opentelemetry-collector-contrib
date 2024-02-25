@@ -5,7 +5,7 @@ FROM otel/opentelemetry-collector-contrib:$VERSION as otelcol
 FROM alpine:latest
 
 RUN mkdir -p /tmp && \
-    apk add --no-cache curl lynx inetutils-telnet netcat-openbsd wget && \
+    apk add --no-cache curl jq lynx inetutils-telnet netcat-openbsd wget && \
     apk --update add ca-certificates
 
 ARG USER_UID=10001
