@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -43,6 +44,10 @@ type eventReceiver struct {
 	shutdownWG  sync.WaitGroup
 	obsrecv     *receiverhelper.ObsReport
 	gzipPool    *sync.Pool
+}
+
+type Payload struct {
+	Data [][]int `json:"data"`
 }
 
 func newLogsReceiver(params receiver.CreateSettings, cfg Config, consumer consumer.Logs) (receiver.Logs, error) {
@@ -201,7 +206,18 @@ func (er *eventReceiver) handleReq(w http.ResponseWriter, r *http.Request, _ htt
 		er.failBadReq(ctx, w, http.StatusInternalServerError, consumerErr)
 		er.obsrecv.EndLogsOp(ctx, metadata.Type, numLogs, nil)
 	} else {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+
+		var r Payload
+		jsonStr := `{"data": [[0, 200]]}`
+		_ = json.Unmarshal([]byte(jsonStr), &r)
+
+		err := json.NewEncoder(w).Encode(r)
+		if err != nil {
+			http.Error(w, "Unable to encode JSON", http.StatusInternalServerError)
+		}
+
 		er.obsrecv.EndLogsOp(ctx, metadata.Type, numLogs, nil)
 	}
 }
